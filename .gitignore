@@ -1,0 +1,5 @@
+.gen
+cdktf.out
+node_moudles
+package-lock.json
+node_modules
