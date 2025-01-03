@@ -27,7 +27,7 @@ The system consists of two main components:
 ## Environment Variables
 
 The following environment variables are required:
-```
+```bash
 AWS_ACCOUNT_ID=your-aws-account-id
 AWS_REGION=your-aws-region
 BACKEND_BUCKET=your-terraform-state-bucket
@@ -50,7 +50,7 @@ AssetManagement/
 
 1. Set up the dependencies by running with `INSTALL_DEPENDENCIES=true`:
 
-```
+```json
 {
     "assetId": {
     "DATABASE": {
@@ -66,7 +66,7 @@ AssetManagement/
 ```
 
 2. Access secrets in your code:
-```
+```typescript
 const database = this.getAsset("assetId", Dependencies.DATABASE);
 const url = database('url');
 const username = database('username');
