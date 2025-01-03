@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import { App } from "cdktf";
 import { BaseStack } from "./lib/BaseStack";
-import { BaseStackProps, DependecyAttributes, Dependencies } from "./lib/BaseStack/types";
+import { BaseStackProps, Dependencies } from "./lib/BaseStack/types";
 import { SecretsmanagerSecret } from "@cdktf/provider-aws/lib/secretsmanager-secret";
 import { SecretsmanagerSecretVersion } from "@cdktf/provider-aws/lib/secretsmanager-secret-version";
 import { DependencyStack } from "./lib/DependencyStack";
