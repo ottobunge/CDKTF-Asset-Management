@@ -151,6 +151,39 @@ const num = example('num');    // TypeScript knows: number
 const bool = example('bool');  // TypeScript knows: boolean
 ```
 
+## CDKTF Compilation Model and Terraform Functions
+
+A key aspect of this project's architecture is how it handles attribute access through CDKTF's Terraform functions. This is necessary because of how CDKTF works:
+
+1. **Compilation Time vs Runtime**: When your TypeScript code runs, it's not actually executing infrastructure changes - it's generating a Terraform configuration. This means we don't have access to the actual secret values during the TypeScript execution.
+
+2. **Terraform Function Usage**: Instead of directly accessing values, we use CDKTF's `Fn.lookupNested` and `Fn.jsondecode` functions. These get compiled into Terraform function calls that will be evaluated when Terraform actually runs. For example:
+
+```typescript
+const accessor = (attribute) => Fn.lookupNested(
+    Fn.jsondecode(secretString), 
+    [assetId, dependencyType, attribute]
+);
+```
+
+Gets compiled into Terraform code like:
+
+```hcl
+  jsondecode(data.aws_secretsmanager_secret_version.dependencies.secret_string).someAssetId.DATABASE.url
+```
+
+3. **Why This Matters**: This approach ensures that:
+   - Secret values are only accessed at Terraform runtime, not during compilation
+   - The TypeScript code generates valid Terraform configurations
+   - We maintain type safety while working with values that don't exist during compilation
+
+4. **Type Safety**: Despite working with values that don't exist during compilation, our type system still ensures that:
+   - We can only request valid dependency types
+   - We can only access valid attributes for each dependency
+   - The TypeScript compiler knows the correct return type for each attribute
+
+This is why you'll see Terraform functions used throughout the codebase instead of direct object access - it's a fundamental aspect of how CDKTF translates TypeScript code into Terraform configurations.
+
 ## Adding New Dependency Types
 
 1. Add the new dependency type to `Dependencies` enum in `BaseStack/types.ts`
