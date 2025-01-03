@@ -233,7 +233,7 @@ This type system provides excellent IDE support:
 For example, when you type:
 ```typescript
 const database = this.getAsset("assetId", Dependencies.DATABASE);
-const value = database('
+const value = database(<'url'|'username'|'password'>)
 ```
 Your IDE will automatically suggest only valid options: `url`, `username`, or `password`.
 
