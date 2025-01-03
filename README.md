@@ -52,15 +52,15 @@ AssetManagement/
 
 ```json
 {
-    "assetId": {
-    "DATABASE": {
-        "url": "https://example.com",
-        "username": "admin",
-        "password": "password"
-    },
-    "SENTRY": {
-        "dsn": "https://example.com"
-    }
+    "[assetId]": {
+        "DATABASE": {
+            "url": "https://example.com",
+            "username": "admin",
+            "password": "password"
+        },
+        "SENTRY": {
+            "dsn": "https://example.com"
+        }
     }
 }
 ```
