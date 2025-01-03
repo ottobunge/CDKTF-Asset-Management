@@ -6,24 +6,26 @@ import type { DependecyAttributes, BaseStackProps } from "./types";
 
 export abstract class BaseStack extends TerraformStack {
   public readonly accountId: string;
+  public readonly name: string;
   public readonly region: string;
+  public readonly backendBucket: string;
   public readonly provider: AwsProvider;
   public readonly environment: string;  
   private readonly loadedDependencies: DataAwsSecretsmanagerSecretVersion;
 
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id);
-
+    this.name = id;
     this.accountId = props.accountId;
     this.region = props.region;
     this.environment = props.environment;
-
+    this.backendBucket = props.backendBucket;
     new S3Backend(this, {
-      bucket: "ottomundo-terraform-state",
-      key: `terraform/state/${this.environment}/terraform.tfstate`,
+      bucket: this.backendBucket,
+      key: `terraform/state/${this.environment}/${this.name}/terraform.tfstate`,
       region: this.region,
       encrypt: true,
-      dynamodbTable: "ottomundo-terraform-state-lock",      
+      dynamodbTable: "terraform-state-lock",      
     });
 
     this.provider = new AwsProvider(this, `provider-${this.region}`, {
@@ -36,7 +38,7 @@ export abstract class BaseStack extends TerraformStack {
 
   }
 
-  private getDependencySecretName() {
+  public getDependencySecretName() {
     return `asset-management/${this.environment}`;
   }
 

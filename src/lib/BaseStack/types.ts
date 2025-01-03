@@ -2,6 +2,7 @@ export interface BaseStackProps {
     accountId: string;
     region: string;
     environment: string;
+    backendBucket: string;
 }
 
 export enum Dependencies {
