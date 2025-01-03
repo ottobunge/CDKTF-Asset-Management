@@ -42,7 +42,7 @@ export abstract class BaseStack extends TerraformStack {
     return `asset-management/${this.environment}`;
   }
 
-  public getAsset<Dep extends keyof DependecyAttributes>(assetId: string, dependencyType: Dep) {
+  public getDependency<Dep extends keyof DependecyAttributes>(assetId: string, dependencyType: Dep) {
     const secretString = this.loadedDependencies.secretString;
     return (attribute: keyof DependecyAttributes[Dep]) => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, attribute]);
   }

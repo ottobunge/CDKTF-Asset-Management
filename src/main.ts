@@ -10,7 +10,7 @@ import { DependencyStack } from "./lib/DependencyStack";
 class MyStack extends BaseStack {
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
-      const database = this.getAsset("someAssetId", Dependencies.DATABASE);
+      const database = this.getDependency("someAssetId", Dependencies.DATABASE);
       const secret = new SecretsmanagerSecret(this, "someSecret", {
         name: "MySecretExample",
       });
