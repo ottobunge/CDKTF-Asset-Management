@@ -5,16 +5,28 @@ import { DependecyAttributes } from "../BaseStack/types";
 import { SecretsmanagerSecret } from "@cdktf/provider-aws/lib/secretsmanager-secret";
 import { SecretsmanagerSecretVersion } from "@cdktf/provider-aws/lib/secretsmanager-secret-version";
 import { TerraformOutput, Fn } from "cdktf";
-/*
-    This stack is used to store dependencies , the dependencies are provided as part of the properties
-    of the stack, the dependencies are created as secrets in the AWS Secrets Manager, which can then be used by other stacks.
-*/
+
+/**
+ * DependencyStack manages infrastructure dependencies through AWS Secrets Manager.
+ * It creates and stores dependencies as secrets that can be accessed by other stacks.
+ */
 export class DependencyStack extends BaseStack {
+    /**
+     * Creates a new instance of DependencyStack
+     * @param scope - The scope in which to define this construct
+     * @param id - The scoped construct ID
+     * @param props - Configuration properties including dependencies to be stored
+     */
     constructor(scope: Construct, id: string, props: DependencyStackProps) {
         super(scope, id, props);
         this.createAssets(props.dependencies);
     }
 
+    /**
+     * Creates AWS Secrets Manager resources to store dependencies
+     * @param dependencies - Key-value pairs of dependencies to be stored in Secrets Manager
+     * @private
+     */
     private createAssets(dependencies: {
         [key: string]: DependecyAttributes;
     }){
