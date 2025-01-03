@@ -1,4 +1,4 @@
-import { BaseStackProps, DependecyAttributes, Dependencies } from "../BaseStack/types";
+import { BaseStackProps, DependecyAttributes } from "../BaseStack/types";
 
 export interface DependencyStackProps extends BaseStackProps {
     dependencies: {
