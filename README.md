@@ -95,7 +95,7 @@ The type system is built to provide complete type safety and IDE support through
 
 ### Generic Type Flow
 
-The `getDependency` method uses a sophisticated generic type system to ensure type safety:
+The `getDependency` method leverages the generic type system to ensure type safety:
 
 ```typescript
 public getDependency<Dep extends keyof DependecyAttributes>(
