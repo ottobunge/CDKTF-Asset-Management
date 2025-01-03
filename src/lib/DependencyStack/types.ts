@@ -10,6 +10,6 @@ export interface DependencyStackProps extends BaseStackProps {
      * Each key represents a unique identifier for a set of dependencies
      */
     dependencies: {
-        [key: string]: DependecyAttributes;
+        [key: string]: Partial<DependecyAttributes>;
     };
 }

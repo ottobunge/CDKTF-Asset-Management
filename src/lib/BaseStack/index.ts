@@ -20,7 +20,7 @@ export abstract class BaseStack extends TerraformStack {
   /** AWS Provider instance for this stack */
   public readonly provider: AwsProvider;
   /** Environment name (e.g., 'dev', 'prod') */
-  public readonly environment: string;  
+  public readonly environment: string;
   /** Loaded dependencies from AWS Secrets Manager */
   private readonly loadedDependencies: DataAwsSecretsmanagerSecretVersion;
 
@@ -42,7 +42,7 @@ export abstract class BaseStack extends TerraformStack {
       key: `terraform/state/${this.environment}/${this.name}/terraform.tfstate`,
       region: this.region,
       encrypt: true,
-      dynamodbTable: "terraform-state-lock",      
+      dynamodbTable: "terraform-state-lock",
     });
 
     this.provider = new AwsProvider(this, `provider-${this.region}`, {
@@ -71,7 +71,13 @@ export abstract class BaseStack extends TerraformStack {
    */
   public getDependency<Dep extends keyof DependecyAttributes>(assetId: string, dependencyType: Dep) {
     const secretString = this.loadedDependencies.secretString;
-    return (attribute: keyof DependecyAttributes[Dep]) => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, attribute]);
+    /**
+     * Lookup the attribute in the secret string
+     * @param attribute - The attribute to lookup
+     * @returns a terraform reference to the attribute.
+     */
+    const accessor = <Attr extends keyof DependecyAttributes[Dep]>(attribute: Attr): DependecyAttributes[Dep][Attr] => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, attribute]);
+    return accessor;
   }
-  
+
 }

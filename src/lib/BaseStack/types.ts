@@ -8,6 +8,7 @@ export interface BaseStackProps {
 export enum Dependencies {
     DATABASE = "DATABASE",
     SENTRY = "SENTRY",
+    EXAMPLE = "EXAMPLE",
 }
 
 export interface DependecyAttributes {
@@ -18,5 +19,10 @@ export interface DependecyAttributes {
     };
     [Dependencies.SENTRY]: {
         dsn: string;
+    };
+    [Dependencies.EXAMPLE]: {
+        str: string;
+        num: number;
+        bool: boolean;
     };
 }

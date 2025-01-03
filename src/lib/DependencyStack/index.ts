@@ -28,7 +28,7 @@ export class DependencyStack extends BaseStack {
      * @private
      */
     private createAssets(dependencies: {
-        [key: string]: DependecyAttributes;
+        [key: string]: Partial<DependecyAttributes>;
     }){
         const dependencySecretName = this.getDependencySecretName();
         const secretManager = new SecretsmanagerSecret(this, dependencySecretName, {

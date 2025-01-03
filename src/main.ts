@@ -11,15 +11,21 @@ class MyStack extends BaseStack {
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id, props);
       const database = this.getDependency("someAssetId", Dependencies.DATABASE);
+      const sentry = this.getDependency("someAssetId", Dependencies.SENTRY);
+      const example = this.getDependency("someAssetId", Dependencies.EXAMPLE);
       const secret = new SecretsmanagerSecret(this, "someSecret", {
         name: "MySecretExample",
       });
       const url = database('url');
       const user = database('username');
       const password = database('password');
+      const dsn = sentry('dsn');
+      const str = example('str');
+      const num = example('num');
+      const bool = example('bool');
       new SecretsmanagerSecretVersion(this, "someSecretVersion", {
         secretId: secret.id,
-        secretString: `URL: ${url}, USER: ${user}, PASSWORD: ${password}`,
+        secretString: `URL: ${url}, USER: ${user}, PASSWORD: ${password}, DSN: ${dsn}, STR: ${str}, NUM: ${num}, BOOL: ${bool}`,
       });
   }
 }
@@ -35,9 +41,7 @@ if(!region || !accountId || !backendBucket){
 }
 
 if(install_dependencies === "true"){
-  const dependencies: {
-    [key: string]: DependecyAttributes;
-  } = {
+  const dependencies = {
     "someAssetId": {
       [Dependencies.DATABASE]: {
         "url": "https://example.com",
@@ -46,6 +50,11 @@ if(install_dependencies === "true"){
       },
       [Dependencies.SENTRY]: {
         "dsn": "https://example.com",
+      },
+      [Dependencies.EXAMPLE]: {
+        "str": "example",
+        "num": 1,
+        "bool": true,
       }
     }
   }
