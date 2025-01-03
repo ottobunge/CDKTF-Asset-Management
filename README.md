@@ -157,7 +157,7 @@ A key aspect of this project's architecture is how it handles attribute access t
 
 1. **Compilation Time vs Runtime**: When your TypeScript code runs, it's not actually executing infrastructure changes - it's generating a Terraform configuration. This means we don't have access to the actual secret values during the TypeScript execution.
 
-2. **Terraform Function Usage**: Instead of directly accessing values, we use CDKTF's `Fn.lookupNested` and `Fn.jsondecode` functions. These get compiled into Terraform function calls that will be evaluated when Terraform actually runs. For example:
+2. **Terraform Function Usage**: Instead of directly accessing values, we use CDKTF's `Fn.lookupNested` and `Fn.jsondecode` functions. These get compiled into Terraform function calls and attribute accesses that will be evaluated when Terraform actually runs. For example:
 
 ```typescript
 const accessor = (attribute) => Fn.lookupNested(
