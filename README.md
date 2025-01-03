@@ -35,12 +35,14 @@ INSTALL_DEPENDENCIES=true|false
 ```
 ## Project Structure
 
+```
 AssetManagement/
 ├── src/
 │ ├── lib/
 │ │ ├── BaseStack/ # Base infrastructure stack
 │ │ └── DependencyStack/ # Secret management stack
 │ └── main.ts # Main application entry point
+```
 
 ## Usage
 
