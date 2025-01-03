@@ -26,9 +26,9 @@ export abstract class BaseStack extends TerraformStack {
 
   /**
    * Creates a new instance of BaseStack
-   * @param scope - The scope in which to define this construct
-   * @param id - The scoped construct ID
-   * @param props - Configuration properties for the stack
+   * @param {Construct} scope - The scope in which to define this construct
+   * @param {string} id - The scoped construct ID
+   * @param {BaseStackProps} props - Configuration properties for the stack
    */
   constructor(scope: Construct, id: string, props: BaseStackProps) {
     super(scope, id);
@@ -57,7 +57,7 @@ export abstract class BaseStack extends TerraformStack {
 
   /**
    * Gets the AWS Secrets Manager secret name for dependencies
-   * @returns The secret name formatted as 'asset-management/{environment}'
+   * @returns {string} The secret name formatted as 'asset-management/{environment}'
    */
   public getDependencySecretName() {
     return `asset-management/${this.environment}`;
@@ -65,16 +65,18 @@ export abstract class BaseStack extends TerraformStack {
 
   /**
    * Retrieves a specific dependency attribute from AWS Secrets Manager
-   * @param assetId - The identifier of the asset
-   * @param dependencyType - The type of dependency to retrieve
-   * @returns A function that accepts an attribute name and returns its value from the secret
+   * @template {keyof DependecyAttributes} Dep
+   * @param {string} assetId - The identifier of the asset
+   * @param {Dep} dependencyType - The type of dependency to retrieve
+   * @returns {<Attr extends keyof DependecyAttributes[Dep]>(attribute: Attr) => DependecyAttributes[Dep][Attr]} A function that accepts an attribute name and returns its value from the secret
    */
   public getDependency<Dep extends keyof DependecyAttributes>(assetId: string, dependencyType: Dep) {
     const secretString = this.loadedDependencies.secretString;
     /**
      * Lookup the attribute in the secret string
-     * @param attribute - The attribute to lookup
-     * @returns a terraform reference to the attribute.
+     * @template {keyof DependecyAttributes[Dep]} Attr
+     * @param {Attr} attribute - The attribute to lookup
+     * @returns {DependecyAttributes[Dep][Attr]} A terraform reference to the attribute
      */
     const accessor = <Attr extends keyof DependecyAttributes[Dep]>(attribute: Attr): DependecyAttributes[Dep][Attr] => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, attribute]);
     return accessor;

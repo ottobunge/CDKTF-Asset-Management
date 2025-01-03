@@ -13,9 +13,9 @@ import { TerraformOutput, Fn } from "cdktf";
 export class DependencyStack extends BaseStack {
     /**
      * Creates a new instance of DependencyStack
-     * @param scope - The scope in which to define this construct
-     * @param id - The scoped construct ID
-     * @param props - Configuration properties including dependencies to be stored
+     * @param {Construct} scope - The scope in which to define this construct
+     * @param {string} id - The scoped construct ID
+     * @param {DependencyStackProps} props - Configuration properties including dependencies to be stored
      */
     constructor(scope: Construct, id: string, props: DependencyStackProps) {
         super(scope, id, props);
@@ -24,7 +24,7 @@ export class DependencyStack extends BaseStack {
 
     /**
      * Creates AWS Secrets Manager resources to store dependencies
-     * @param dependencies - Key-value pairs of dependencies to be stored in Secrets Manager
+     * @param {Record<string, Partial<DependecyAttributes>>} dependencies - Key-value pairs of dependencies to be stored in Secrets Manager
      * @private
      */
     private createAssets(dependencies: {
