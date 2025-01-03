@@ -74,15 +74,82 @@ const username = database('username');
 
 ## Available Dependencies
 
-The system currently supports two types of dependencies:
+The system currently supports three types of dependencies:
 
 1. **DATABASE**
-   - url
-   - username
-   - password
+   - `url`: string
+   - `username`: string
+   - `password`: string
 
 2. **SENTRY**
-   - dsn
+   - `dsn`: string
+
+3. **EXAMPLE**
+   - `str`: string
+   - `num`: number
+   - `bool`: boolean
+
+## Type System Deep Dive
+
+The type system is built to provide complete type safety and IDE support through TypeScript's powerful generic system. Here's how it works:
+
+### Generic Type Flow
+
+The `getDependency` method uses a sophisticated generic type system to ensure type safety:
+
+```typescript
+public getDependency<Dep extends keyof DependecyAttributes>(
+    assetId: string, 
+    dependencyType: Dep
+) {
+    // Returns a typed accessor function
+    return <Attr extends keyof DependecyAttributes[Dep]>(
+        attribute: Attr
+    ): DependecyAttributes[Dep][Attr] => {
+        // Implementation
+    };
+}
+```
+
+Let's break down how the types flow through this system:
+
+1. When you call `getDependency` with a specific dependency type:
+   ```typescript
+   const database = getDependency("assetId", Dependencies.DATABASE);
+   ```
+   The `Dep` generic is constrained to `keyof DependecyAttributes`, ensuring only valid dependency types are accepted.
+
+2. The returned accessor function is itself generic, where `Attr` is constrained to `keyof DependecyAttributes[Dep]`:
+   ```typescript
+   const url = database('url'); // TypeScript knows this returns string
+   const username = database('username'); // TypeScript knows this returns string
+   ```
+   Because `Dep` was set to `DATABASE`, TypeScript knows exactly which attributes are valid and their types.
+
+3. The return type `DependecyAttributes[Dep][Attr]` automatically resolves to the correct type:
+   - For `DATABASE` attributes: always `string`
+   - For `EXAMPLE` attributes: `string`, `number`, or `boolean` depending on the attribute
+   - For `SENTRY` attributes: `string`
+
+This creates a fully type-safe chain where:
+- You can only request valid dependency types
+- You can only access valid attributes for each dependency
+- Each attribute automatically resolves to its correct type
+- TypeScript can provide accurate autocompletion at every step
+
+### Example Type Resolution
+
+```typescript
+// Type flow for DATABASE
+const database = getDependency("assetId", Dependencies.DATABASE);
+// database: <Attr extends "url" | "username" | "password">(attribute: Attr) => string
+
+// Type flow for EXAMPLE
+const example = getDependency("assetId", Dependencies.EXAMPLE);
+const str = example('str');    // TypeScript knows: string
+const num = example('num');    // TypeScript knows: number
+const bool = example('bool');  // TypeScript knows: boolean
+```
 
 ## Adding New Dependency Types
 
@@ -102,7 +169,8 @@ The type system is built around two main types:
 ```typescript
 enum Dependencies {
     DATABASE = "DATABASE",
-    SENTRY = "SENTRY"
+    SENTRY = "SENTRY",
+    EXAMPLE = "EXAMPLE"
 }
 ```
 
@@ -116,6 +184,11 @@ interface DependecyAttributes {
     };
     [Dependencies.SENTRY]: {
         dsn: string;
+    };
+    [Dependencies.EXAMPLE]: {
+        str: string;
+        num: number;
+        bool: boolean;
     };
 }
 ```
@@ -173,6 +246,7 @@ When adding new dependencies, the type system ensures you properly define all re
 enum Dependencies {
     DATABASE = "DATABASE",
     SENTRY = "SENTRY",
+    EXAMPLE = "EXAMPLE",
     NEW_SERVICE = "NEW_SERVICE"  // Add new dependency type
 }
 ```
@@ -188,11 +262,16 @@ interface DependecyAttributes {
     [Dependencies.SENTRY]: {
         dsn: string;
     };
+    [Dependencies.EXAMPLE]: {
+        str: string;
+        num: number;
+        bool: boolean;
+    };
     [Dependencies.NEW_SERVICE]: {  // Define structure for new dependency
         apiKey: string;
         endpoint: string;
     };
 }
 ```
-
 The TypeScript compiler will ensure you've properly defined all necessary types and attributes, making it impossible to accidentally miss required fields or make typos in attribute names.
+
