@@ -58,8 +58,7 @@ Run with `INSTALL_DEPENDENCIES=true`:
     },
     "settings": {
         "subnetIds": ["123123","321321"],
-        "vpcId": "vpc-123123",
-        "dependencySecretNamePrefix": "asset-management"
+        "vpcId": "vpc-123123"
     }
 }
 ```
@@ -74,16 +73,7 @@ const username = database('username');
 // Access settings
 const subnetIds = this.getSetting("subnetIds");
 const vpcId = this.getSetting("vpcId");
-const secretPrefix = this.getSetting("dependencySecretNamePrefix");
 ```
-
-## Available Settings
-
-The DependencyStack manages the following settings:
-
-1. **subnetIds**: string[] - List of subnet IDs for the environment
-2. **vpcId**: string - VPC ID for the environment
-3. **dependencySecretNamePrefix**: string - Prefix used for AWS Secrets Manager secret names (e.g., "asset-management" results in secrets like "asset-management/dev")
 
 ## Available Dependencies
 

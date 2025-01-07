@@ -23,6 +23,7 @@ class MyStack extends BaseStack {
       const str = example('str');
       const num = example('num');
       const bool = example('bool');
+      const objStr = example('obj', 'str')
       new SecretsmanagerSecretVersion(this, "someSecretVersion", {
         secretId: secret.id,
         secretString: `URL: ${url}, USER: ${user}, PASSWORD: ${password}, DSN: ${dsn}, STR: ${str}, NUM: ${num}, BOOL: ${bool}`,
@@ -61,6 +62,11 @@ if(install_dependencies === "true"){
         "str": "example",
         "num": 1,
         "bool": true,
+        "obj": {
+          "str": "example",
+          "num": 1,
+          "bool": true,
+        }
       }
     }
   }

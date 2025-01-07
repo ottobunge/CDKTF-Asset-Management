@@ -25,5 +25,10 @@ export interface DependecyAttributes {
         str: string;
         num: number;
         bool: boolean;
+        obj: {
+            str: string;
+            num: number;
+            bool: boolean;
+        };
     };
 }

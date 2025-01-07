@@ -83,25 +83,28 @@ export abstract class BaseStack extends TerraformStack {
 
   /**
    * Retrieves a specific dependency attribute from AWS Secrets Manager
+   * Supports nested attributes using TypeScript's Rest and Infer features
    * @template {keyof DependecyAttributes} Dep
    * @param {string} assetId - The identifier of the asset
    * @param {Dep} dependencyType - The type of dependency to retrieve
-   * @returns {<Attr extends keyof DependecyAttributes[Dep]>(attribute: Attr) => DependecyAttributes[Dep][Attr]} A function that accepts an attribute name and returns its value from the secret
+   * @returns {<Path extends string[]>(...path: Path) => InferPath<DependecyAttributes[Dep], Path>} A function that accepts a path of attributes and returns its value from the secret
    */
   public getDependency<Dep extends keyof DependecyAttributes>(assetId: string, dependencyType: Dep) {
-    if(this.isDependencyStack || !this.loadedDependencies){
+    if(this.isDependencyStack || !this.loadedDependencies){
       throw new Error("Cannot read dependencies inside dependency stack.");
     }
     const secretString = this.loadedDependencies.secretString;
     /**
      * Lookup the attribute in the secret string
-     * @template {keyof DependecyAttributes[Dep]} Attr
-     * @param {Attr} attribute - The attribute to lookup
-     * @returns {DependecyAttributes[Dep][Attr]} A terraform reference to the attribute
+     * Supports nested attributes
+     * @template {string[]} Path
+     * @param {Path} path - The path of attributes to lookup
+     * @returns {InferPath<DependecyAttributes[Dep], Path>} A terraform reference to the attribute
      */
-    const accessor = <Attr extends keyof DependecyAttributes[Dep]>(attribute: Attr): DependecyAttributes[Dep][Attr] => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, attribute]);
+    const accessor = <Path extends string[]>(...path: Path): InferPath<DependecyAttributes[Dep], Path> => Fn.lookupNested(Fn.jsondecode(secretString), [assetId, dependencyType, ...path]);
     return accessor;
   }
+
   /**
    * Retrieves a setting from the dependency stack
    * settings are stored as outputs in the dependency stack
@@ -115,3 +118,16 @@ export abstract class BaseStack extends TerraformStack {
     return Fn.lookup(Fn.jsondecode(this.dependencyStackRemoteState.getString("SettingsOutput")), setting);
   }
 }
+
+/**
+ * Infers the type of a nested path in an object
+ * @template T - The object type
+ * @template P - The path type
+ */
+type InferPath<T, P extends string[]> = P extends [infer First, ...infer Rest]
+  ? First extends keyof T
+    ? Rest extends string[]
+      ? InferPath<T[First], Rest>
+      : never
+    : never
+  : T;
