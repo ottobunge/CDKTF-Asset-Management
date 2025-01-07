@@ -1,16 +1,14 @@
 # Asset Management with AWS Secrets Manager
 
-This project demonstrates a secure approach to managing sensitive dependencies using AWS CDK for Terraform (CDKTF) and AWS Secrets Manager. It enables organizations to implement a separation of concerns between teams that manage secrets and teams that develop applications.
+This project demonstrates a secure approach to managing sensitive dependencies using AWS CDK for Terraform (CDKTF) and AWS Secrets Manager, enabling separation of concerns between security/ops and development teams.
 
 ## Overview
 
 The system consists of two main components:
-
-1. **DependencyStack**: Used by security/ops teams to safely store sensitive configuration data (like database credentials, API keys, etc.) in AWS Secrets Manager.
-2. **Application Stack**: Used by development teams to access these secrets without direct exposure to the sensitive values.
+1. **DependencyStack**: Used by security/ops teams to safely store sensitive configuration data (like database credentials, API keys, etc.) and environment settings in AWS Secrets Manager.
+2. **Application Stack**: Used by development teams to access these secrets and settings without direct exposure to the sensitive values.
 
 ## Security Benefits
-
 - Developers don't need direct access to sensitive credentials
 - Reduced risk of secret leakage through developer environments
 - Centralized secret management
@@ -18,23 +16,20 @@ The system consists of two main components:
 - Audit trail through AWS CloudTrail
 
 ## Prerequisites
-
 - Node.js (14.x or later)
 - AWS CLI configured with appropriate credentials
 - Terraform CLI
 - CDKTF CLI
 
-## Environment Variables
-
-The following environment variables are required:
+Required environment variables:
 ```bash
 AWS_ACCOUNT_ID=your-aws-account-id
 AWS_REGION=your-aws-region
 BACKEND_BUCKET=your-terraform-state-bucket
 INSTALL_DEPENDENCIES=true|false
 ```
-## Project Structure
 
+## Project Structure
 ```
 AssetManagement/
 ├── src/
@@ -46,9 +41,8 @@ AssetManagement/
 
 ## Usage
 
-### For Security/Operations Teams
-
-1. Set up the dependencies by running with `INSTALL_DEPENDENCIES=true`:
+### Setting Up Dependencies and Settings
+Run with `INSTALL_DEPENDENCIES=true`:
 
 ```json
 {
@@ -61,15 +55,24 @@ AssetManagement/
         "SENTRY": {
             "dsn": "https://example.com"
         }
+    },
+    "settings": {
+        "subnetIds": ["123123","321321"],
+        "vpcId": "vpc-123123"
     }
 }
 ```
 
-2. Access secrets in your code:
+### Accessing Values
 ```typescript
-const database = this.getAsset("assetId", Dependencies.DATABASE);
+// Access secrets
+const database = this.getDependency("assetId", Dependencies.DATABASE);
 const url = database('url');
 const username = database('username');
+
+// Access settings
+const subnetIds = this.getSetting("subnetIds");
+const vpcId = this.getSetting("vpcId");
 ```
 
 ## Available Dependencies
@@ -89,13 +92,41 @@ The system currently supports three types of dependencies:
    - `num`: number
    - `bool`: boolean
 
-## Type System Deep Dive
+## Type System and CDKTF Integration
 
-The type system is built to provide complete type safety and IDE support through TypeScript's powerful generic system. Here's how it works:
+The project uses TypeScript's powerful generic system to provide complete type safety and IDE support. Here's how it works:
 
-### Generic Type Flow
+### Type System Architecture
 
-The `getDependency` method leverages the generic type system to ensure type safety:
+The type system is built around two main types:
+
+```typescript
+// 1. The Dependencies enum defines available dependency types
+enum Dependencies {
+    DATABASE = "DATABASE",
+    SENTRY = "SENTRY",
+    EXAMPLE = "EXAMPLE"
+}
+
+// 2. The DependecyAttributes interface maps each type to its structure
+interface DependecyAttributes {
+    [Dependencies.DATABASE]: {
+        url: string;
+        username: string;
+        password: string;
+    };
+    [Dependencies.SENTRY]: {
+        dsn: string;
+    };
+    [Dependencies.EXAMPLE]: {
+        str: string;
+        num: number;
+        bool: boolean;
+    };
+}
+```
+
+The `getDependency` method leverages these types to ensure type safety:
 
 ```typescript
 public getDependency<Dep extends keyof DependecyAttributes>(
@@ -135,7 +166,6 @@ This creates a fully type-safe chain where:
 - You can only request valid dependency types
 - You can only access valid attributes for each dependency
 - Each attribute automatically resolves to its correct type
-- TypeScript can provide accurate autocompletion at every step
 
 ### Example Type Resolution
 
@@ -157,72 +187,35 @@ A key aspect of this project's architecture is how it handles attribute access t
 
 1. **Compilation Time vs Runtime**: When your TypeScript code runs, it's not actually executing infrastructure changes - it's generating a Terraform configuration. This means we don't have access to the actual secret values during the TypeScript execution.
 
-2. **Terraform Function Usage**: Instead of directly accessing values, we use CDKTF's `Fn.lookupNested` and `Fn.jsondecode` functions. These get compiled into Terraform function calls and attribute accesses that will be evaluated when Terraform actually runs. For example:
+2. **Terraform Function Usage**: Instead of directly accessing values, we use CDKTF's `Fn.lookupNested`, `Fn.jsondecode`, and `Fn.lookup` functions. These get compiled into Terraform function calls and attribute accesses that will be evaluated when Terraform actually runs. For example:
 
 ```typescript
+// In TypeScript
 const accessor = (attribute) => Fn.lookupNested(
     Fn.jsondecode(secretString), 
     [assetId, dependencyType, attribute]
 );
+
+// Access settings
+const settingValue = Fn.lookup(
+    Fn.jsondecode(this.dependencyStackRemoteState.getString("SettingsOutput")),
+    setting
+);
+
+// Compiles to HCL
+jsondecode(data.aws_secretsmanager_secret_version.dependencies.secret_string).someAssetId.DATABASE.url
+jsondecode(data.terraform_remote_state.dependency_stack.outputs.SettingsOutput).subnetIds
 ```
 
-Gets compiled into Terraform code like:
+This approach ensures:
+- Secret values are only accessed at Terraform runtime, not during compilation
+- TypeScript code generates valid Terraform configurations
+- Type safety is maintained even though values don't exist during compilation
+- Terraform functions are used instead of direct object access
 
-```hcl
-  jsondecode(data.aws_secretsmanager_secret_version.dependencies.secret_string).someAssetId.DATABASE.url
-```
 
-3. **Why This Matters**: This approach ensures that:
-   - Secret values are only accessed at Terraform runtime, not during compilation
-   - The TypeScript code generates valid Terraform configurations
-   - We maintain type safety while working with values that don't exist during compilation
-
-4. **Type Safety**: Despite working with values that don't exist during compilation, our type system still ensures that:
-   - We can only request valid dependency types
-   - We can only access valid attributes for each dependency
-   - The TypeScript compiler knows the correct return type for each attribute
-
-This is why you'll see Terraform functions used throughout the codebase instead of direct object access - it's a fundamental aspect of how CDKTF translates TypeScript code into Terraform configurations.
-
-## Adding New Dependency Types
-
-1. Add the new dependency type to `Dependencies` enum in `BaseStack/types.ts`
-2. Update the `DependecyAttributes` interface with the new dependency structure
-3. Update the dependency configuration in your deployment
-
-## Type System and IDE Integration
-
-One of the key features of this project is its strongly-typed dependency management system. The type system is designed to provide complete IDE support and compile-time safety when accessing dependencies.
-
-### How It Works
-
-The type system is built around two main types:
-
-1. The `Dependencies` enum that defines available dependency types:
-```typescript
-enum Dependencies {
-    DATABASE = "DATABASE",
-    SENTRY = "SENTRY",
-    EXAMPLE = "EXAMPLE"
-}
-```
-
-2. The `DependecyAttributes` interface that maps each dependency type to its structure:
-```typescript
-interface DependecyAttributes {
-    [Dependencies.DATABASE]: {
-        url: string;
-        username: string;
-        password: string;
-    };
-    [Dependencies.SENTRY]: {
-        dsn: string;
-    };
-    [Dependencies.EXAMPLE]: {
-        str: string;
-        num: number;
-        bool: boolean;
-    };
-}
-```
+## Make your own dependencies and settings.
+1. Add to `Dependencies` enum in `BaseStack/types.ts`
+2. Update `DependecyAttributes` interface with the new dependency structure
+3. Update your deployment configuration accordingly
 
