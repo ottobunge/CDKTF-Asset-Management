@@ -74,6 +74,7 @@ if(install_dependencies === "true"){
       settings: {
         subnetIds: ["123123","321321"],
         vpcId: 'vpc-123123',
+        dependencySecretNamePrefix: 'asset-management',
       }
   });
 } else {

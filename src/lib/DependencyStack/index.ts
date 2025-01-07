@@ -9,6 +9,8 @@ import { TerraformOutput, Fn } from "cdktf";
 /**
  * DependencyStack manages infrastructure dependencies through AWS Secrets Manager.
  * It creates and stores dependencies as secrets that can be accessed by other stacks.
+ * We have to be careful not to use functions from the BaseStack that call getDependencySecretName(), getDependency(), or getSetting()
+ * because this stack is not loaded yet.
  */
 export class DependencyStack extends BaseStack {
     /**
@@ -19,7 +21,7 @@ export class DependencyStack extends BaseStack {
      */
     constructor(scope: Construct, id: string, props: DependencyStackProps) {
         super(scope, id, props);
-        this.createAssets(props.dependencies);
+        this.createAssets(props.settings.dependencySecretNamePrefix, props.dependencies);
         new TerraformOutput(this, "SettingsOutput", {
             value: Fn.jsonencode(props.settings),
         });
@@ -30,10 +32,10 @@ export class DependencyStack extends BaseStack {
      * @param {Record<string, Partial<DependecyAttributes>>} dependencies - Key-value pairs of dependencies to be stored in Secrets Manager
      * @private
      */
-    private createAssets(dependencies: {
+    private createAssets(prefix: string, dependencies: {
         [key: string]: Partial<DependecyAttributes>;
     }){
-        const dependencySecretName = this.getDependencySecretName();
+        const dependencySecretName = `${prefix}/${this.environment}`;
         const secretManager = new SecretsmanagerSecret(this, dependencySecretName, {
             name: dependencySecretName,
         });

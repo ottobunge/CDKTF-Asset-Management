@@ -75,10 +75,10 @@ export abstract class BaseStack extends TerraformStack {
 
   /**
    * Gets the AWS Secrets Manager secret name for dependencies
-   * @returns {string} The secret name formatted as 'asset-management/{environment}'
+   * @returns {string} The secret name formatted as '{prefix}/{environment}'
    */
   public getDependencySecretName() {
-    return `asset-management/${this.environment}`;
+    return `${this.getSetting("dependencySecretNamePrefix")}/${this.environment}`;
   }
 
   /**

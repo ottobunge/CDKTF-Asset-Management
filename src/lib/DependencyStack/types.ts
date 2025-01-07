@@ -12,6 +12,7 @@ export interface DependencyStackProps extends BaseStackProps {
     settings: {
         subnetIds: string[];
         vpcId: string;
+        dependencySecretNamePrefix: string;
     }
     dependencies: {
         [key: string]: Partial<DependecyAttributes>;
