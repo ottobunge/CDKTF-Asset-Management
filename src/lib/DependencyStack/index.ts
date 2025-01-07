@@ -20,6 +20,9 @@ export class DependencyStack extends BaseStack {
     constructor(scope: Construct, id: string, props: DependencyStackProps) {
         super(scope, id, props);
         this.createAssets(props.dependencies);
+        new TerraformOutput(this, "SettingsOutput", {
+            value: Fn.jsonencode(props.settings),
+        });
     }
 
     /**

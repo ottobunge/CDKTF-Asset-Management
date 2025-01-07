@@ -1,5 +1,5 @@
 import { Construct } from "constructs";
-import { App } from "cdktf";
+import { App, Fn, TerraformOutput } from "cdktf";
 import { BaseStack } from "./lib/BaseStack";
 import { BaseStackProps, Dependencies } from "./lib/BaseStack/types";
 import { SecretsmanagerSecret } from "@cdktf/provider-aws/lib/secretsmanager-secret";
@@ -26,6 +26,12 @@ class MyStack extends BaseStack {
       new SecretsmanagerSecretVersion(this, "someSecretVersion", {
         secretId: secret.id,
         secretString: `URL: ${url}, USER: ${user}, PASSWORD: ${password}, DSN: ${dsn}, STR: ${str}, NUM: ${num}, BOOL: ${bool}`,
+      });
+      new TerraformOutput(this, "FromSettings", {
+        value: Fn.jsonencode({
+          loadedSubnetIds: this.getSetting("subnetIds"),
+          loadedVpcId: this.getSetting("vpcId"),
+        }),
       });
   }
 }
@@ -64,6 +70,11 @@ if(install_dependencies === "true"){
       environment: "example-env",
       backendBucket,
       dependencies,
+      dependencyStackName: '',
+      settings: {
+        subnetIds: ["123123","321321"],
+        vpcId: 'vpc-123123',
+      }
   });
 } else {
   new MyStack(app, "AssetManagement", {
@@ -71,6 +82,7 @@ if(install_dependencies === "true"){
     region,
     environment: "example-env",
     backendBucket,
+    dependencyStackName: 'DependencyStack',
   });
 }
 app.synth();

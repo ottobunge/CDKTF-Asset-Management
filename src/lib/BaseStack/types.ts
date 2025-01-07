@@ -3,6 +3,7 @@ export interface BaseStackProps {
     region: string;
     environment: string;
     backendBucket: string;
+    dependencyStackName: string;
 }
 
 export enum Dependencies {
